@@ -59,7 +59,7 @@ def set_weight(model, path=None, test=False, random_weight=None):
     layer_loop(layers_name2, range(0, 5, 3), ['', ''], [True, True], plusk=[0, 1], 
                     condition=['down4'])
 
-    if test != None:
+    if test != False:
         layer_loop(scale, range(0, 1), ['', ''], [False, False], plusk=[3, 1], 
         down_weight=random_weight)
         layer_loop(scale2, range(0, 1), ['', ''], [False, False], plusk=[2, 0], 
