@@ -1,3 +1,5 @@
 # this is just personal garbage
 DDRNet23s_imagenet.pth
 __pycache__/**
+comparison_test.ipynb
+model.png

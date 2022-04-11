@@ -1,7 +1,7 @@
 from tensorflow import keras
 from keras import layers
 import tensorflow as tf
-from pretreind_model_mapping import set_weight
+from pretrained_model_mapping import set_weight
 
 
 def plusone(num, multi=1):
@@ -200,15 +200,15 @@ def DAPPM(x, branch_filters, outfilters):
                                     pad=[0, 1], averp=False)
         return process
 
-    scale0 = avgpool_bn_rel_con(x, (0, 0), 128, 1, [1, 1], 'spp.scale0', averp=False, 
-                                pad=[0,0])
-    x_list.append(scale0)
-
     pool_h = [5, 9, 17, height]
     pool_w = [5, 9, 17, width]
     strides_h = [2, 4, 8, height]
     strides_w = [2, 4, 8, width]
     pads = [2, 4, 8, 0]
+
+    scale0 = avgpool_bn_rel_con(x, (0, 0), 128, 1, [1, 1], 'spp.scale0', averp=False, 
+                                pad=[0,0])
+    x_list.append(scale0)
 
     for i in range(4):
         x_list.append(dappm_step(x, x_list[-1], (pool_h[i], pool_w[i]), [strides_h[i], 
@@ -225,9 +225,9 @@ def DAPPM(x, branch_filters, outfilters):
     return final
 
 def DualResNet(shape, batch_size, num_class=19, filters=32, spp_filters=128, head_filters=64, 
-                augment=False):
+                augment=False, comparison_test=False):
 
-    input_layer = keras.Input(shape=shape, batch_size=batch_size)
+    input_layer = keras.Input(shape=shape, batch_size=batch_size, name='input')
 
     input_shape = input_layer.shape
     height_output = input_shape[1] // 8
@@ -299,18 +299,26 @@ def DualResNet(shape, batch_size, num_class=19, filters=32, spp_filters=128, hea
     layer5_ = bottlenect_residual_block(compression4, highres_filters, stride=[1, 1, 1], 
             name='layer5_.0')
 
-    spp = DAPPM(layer5, spp_filters, filters*4)
-    spp = tf.image.resize(spp, (height_output, width_output)) 
+    spp0 = DAPPM(layer5, spp_filters, filters*4)
+    spp = tf.image.resize(spp0, (height_output, width_output)) 
 
     x_ = layers.Add()([spp, layer5_])
     x_ = segmenthead(x_, num_class, 'final_layer')
 
-    model = keras.Model(input_layer, x_)
+    if comparison_test:
+      model = keras.Model(input_layer, [conv1, layer1, layer2, layer3, layer3_, down3,
+                        compression3, layer4, layer4_, down4, compression4, layer5_, layer5,
+                        spp0, spp, x_])
+    else:
+      model = keras.Model(input_layer, x_)
 
     return model
 
 def DualResNet_imagenet(shape, batch, num_class):
   model = DualResNet(shape, batch, num_class)
-  model = set_weight(model)
+  set_weight(model)
+  return model
 
-model = DualResNet_imagenet((800, 800, 3), 3)
+if __name__ == '__main__':
+  model = DualResNet_imagenet((800, 800, 3), 3, 19)
+  print(model)
