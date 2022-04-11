@@ -3,3 +3,4 @@ DDRNet23s_imagenet.pth
 __pycache__/**
 comparison_test.ipynb
 model.png
+DDRNet_23_slim_official.py
