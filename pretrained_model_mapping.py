@@ -58,11 +58,11 @@ def set_weight(model, path=None, test=False, random_weight=None):
 
     if test:
         layer_loop(['final_layer'], range(1, 3), ['conv', 'bn'], [False, True], 
-           down_weight=random_weight)
+                    down_weight=random_weight)
         layer_loop(scale, range(0, 1), ['', ''], [False, False], plusk=[3, 1], 
-        down_weight=random_weight)
+                    down_weight=random_weight)
         layer_loop(scale2, range(0, 1), ['', ''], [False, False], plusk=[2, 0], 
-        down_weight=random_weight)
+                    down_weight=random_weight)
 
 
 
