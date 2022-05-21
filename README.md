@@ -7,8 +7,11 @@ Vrámci implementácie bola architektúra DDRNet 23 slim vytvorená pomocou fram
 
 Pre test na obmedzenom hardvery bola zvolená grafická GTX 1050Ti (notebook) a GTX 750Ti (notebook). Videá ukazujú výslednú predikciu.
 https://www.youtube.com/watch?v=PeJOl8V3TQ8
+
 https://www.youtube.com/watch?v=uqCa6S1NN6g
+
 https://www.youtube.com/watch?v=_SqsKBJd4wE
+
 https://www.youtube.com/watch?v=hU0v1YPGNE8
 
 
