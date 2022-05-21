@@ -2,6 +2,7 @@ from tensorflow import keras
 from keras import layers
 import tensorflow as tf
 from pretrained_model_mapping import set_weight
+import numpy as np
 
 
 def plusone(num, multi=1):
@@ -224,8 +225,8 @@ def DAPPM(x, branch_filters, outfilters):
     final = layers.Add()([compression, shortcut])
     return final
 
-def DualResNet(shape, batch_size, num_class=19, filters=32, spp_filters=128, head_filters=64, 
-                augment=False, comparison_test=False):
+def DualResNet(shape, batch_size=None, num_class=19, filters=32, spp_filters=128, head_filters=64, 
+                augment=False, comparison_test=False, softmax_act=True):
 
     input_layer = keras.Input(shape=shape, batch_size=batch_size, name='input')
 
@@ -299,11 +300,16 @@ def DualResNet(shape, batch_size, num_class=19, filters=32, spp_filters=128, hea
     layer5_ = bottlenect_residual_block(compression4, highres_filters, stride=[1, 1, 1], 
             name='layer5_.0')
 
+    pretrained_model = keras.Model(input_layer, [layer5, layer5_])
+
     spp0 = DAPPM(layer5, spp_filters, filters*4)
     spp = tf.image.resize(spp0, (height_output, width_output)) 
 
     x_ = layers.Add()([spp, layer5_])
-    x_ = segmenthead(x_, num_class, 'final_layer')
+    x_ = segmenthead(x_, num_class, 'final_layer', scale_factor=8)
+
+    if softmax_act:
+      x_ = layers.Softmax()(x_)
 
     if comparison_test:
       model = keras.Model(input_layer, [conv1, layer1, layer2, layer3, layer3_, down3,
@@ -312,12 +318,18 @@ def DualResNet(shape, batch_size, num_class=19, filters=32, spp_filters=128, hea
     else:
       model = keras.Model(input_layer, x_)
 
-    return model
+    for layer in model.layers:
+      if hasattr(layer, 'kernel_initializer'):
+          layer.kernel_initializer = tf.keras.initializers.he_normal()
+      if hasattr(layer, 'depthwise_initializer'):
+          layer.depthwise_initializer = tf.keras.initializers.he_normal()
 
-def DualResNet_imagenet(shape, batch, num_class):
-  model = DualResNet(shape, batch, num_class)
-  set_weight(model)
-  return model
+    return model, pretrained_model
+
+def DualResNet_imagenet(shape, batch=None, num_class=2, augment=False, comparison_test=False, softmax_act=True):
+  model, pretrained_model = DualResNet(shape, batch, num_class, augment=augment, comparison_test=comparison_test, softmax_act=softmax_act)
+  set_weight(model, path='DDRNet23s_imagenet.pth')
+  return model, pretrained_model
 
 if __name__ == '__main__':
   model = DualResNet_imagenet((800, 800, 3), 3, 19)

@@ -7,7 +7,7 @@ import keras
 import tensorflow as tf
 
 def test(torch_output, tf_output, i):
-  
+    # this is test func. that can compare edited pytoch and tensorflow model output
     tf_output = tf_output[i]
     torch_layer = list(torch_output.keys())[i]
     torch_output = torch_output[torch_layer]
